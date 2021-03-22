@@ -10,3 +10,8 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   console.log("[sw.js]: Service worker successfully activated.");
 });
+
+// -> Intercepts any outbound network request
+self.addEventListener("fetch", (e) => {
+  console.log("[sw.js]: Service worker successfully intercepting HTTP traffic");
+});
