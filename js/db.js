@@ -27,7 +27,7 @@ db.collection(RECIPES_COLLECTION).onSnapshot((snapshot) => {
     }
     if (change.type === CHANGE_TYPE_REMOVED) {
       // -> Remove the document from the web page's local database
-      deleteRecipe(change.doc.data(), change.doc.id);
+      deleteRecipe(change.doc.id);
     }
   });
 });
@@ -46,4 +46,13 @@ form.addEventListener("submit", (evt) => {
 
   form.title.value = "";
   form.ingredients.value = "";
+});
+
+// -> Delete a recipe from your collection
+const recipesContainer = document.querySelector(".recipes");
+recipesContainer.addEventListener("click", (evt) => {
+  if (evt.target.tagName === "I") {
+    const id = evt.target.getAttribute("data-id");
+    db.collection(RECIPES_COLLECTION).doc(id).delete();
+  }
 });

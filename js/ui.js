@@ -25,3 +25,8 @@ const createRecipe = (recipeData, id) => {
 
   recipesDiv.innerHTML += templateHTML;
 }
+
+const deleteRecipe = (id) => {
+  const recipe = document.querySelector(`.recipe[data-id=${id}]`);
+  recipe.remove();
+}
