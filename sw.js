@@ -30,6 +30,9 @@ self.addEventListener("activate", (e) => {
     // - DEV NOTE -> This block of code cycles through all currently stored caches
     //               and deletes any of them who's names don't match up to a specific one
     //               (in this case the value of the STATIC_CACHE_NAME variable).
+    //            -> This only works since the value of that variable is currently being
+    //               manually changed every time I want to trigger this (maybe there's a
+    //               dynamic way to do this).
     //              -> The reasons for placing this logic here have to do with the larger
     //                 nuances of the service worker lifecycle. The activation event is
     //                 the moment where a newly updated service worker takes over for a 
