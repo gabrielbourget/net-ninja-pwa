@@ -67,27 +67,32 @@ self.addEventListener("activate", (e) => {
 // -> Intercepts any outbound network request
 self.addEventListener("fetch", (e) => {
   // console.log("[sw.js]: Service worker successfully intercepting HTTP traffic");
-  // e.respondWith(
-  //   // - DEV NOTE -> Check to see if the resource requested is already in the cache.
-  //   //   -> If it is, return it from there, if not, carry on with the original outbound request.
-  //   caches.match(e.request).then((cacheResponse) => {
-  //     return cacheResponse || fetch(e.request).then(async (fetchResponse) => {
-  //       const cache = await caches.open(DYNAMIC_CACHE_NAME);
-  //       // - DEV NOTE -> Need to clone the response since you can only manipulated it once.
-  //       //              -> Without doing this, we would not be able to pass this along, and the
-  //       //                 network flow would be interrupted.
-  //       cache.put(e.request.url, fetchResponse.clone());
-  //       limitCacheSize(DYNAMIC_CACHE_NAME, MAX_DYNAMIC_CACHE_ITEMS);
-  //       return fetchResponse;
-  //     });
-  //   // - DEV NOTE -> If there is a no match in the cache and there's an error retrieving the resource
-  //   //               from the network, reach into the cache for a fallback page.
-  //   //              -> Only return the fallback page if the request was made for a page (e.g. not an image)
-  //   //              -> This conditional approach can be applied to other types of files (e.g. images)
-  //   }).catch(() => {
-  //     if (evt.request.url.indexOf(".html") > -1) {
-  //       caches.match("/pages/fallback.html")
-  //     }
-  //   })
-  // );
+  // - DEV NOTE -> This is to avoid caching resouorces drawn from the database.
+  //              -> The underlying Google Firebase tools being employed are managing that
+  //                 process in an automated fashion, using IndexedDB.
+  if (e.request.url.indexOf("firestore.googleapis.com") === -1) {
+    e.respondWith(
+    //   // - DEV NOTE -> Check to see if the resource requested is already in the cache.
+    //   //   -> If it is, return it from there, if not, carry on with the original outbound request.
+      caches.match(e.request).then((cacheResponse) => {
+        return cacheResponse || fetch(e.request).then(async (fetchResponse) => {
+          const cache = await caches.open(DYNAMIC_CACHE_NAME);
+          // - DEV NOTE -> Need to clone the response since you can only manipulated it once.
+          //              -> Without doing this, we would not be able to pass this along, and the
+          //                 network flow would be interrupted.
+          cache.put(e.request.url, fetchResponse.clone());
+          limitCacheSize(DYNAMIC_CACHE_NAME, MAX_DYNAMIC_CACHE_ITEMS);
+          return fetchResponse;
+        });
+      // - DEV NOTE -> If there is a no match in the cache and there's an error retrieving the resource
+      //               from the network, reach into the cache for a fallback page.
+      //              -> Only return the fallback page if the request was made for a page (e.g. not an image)
+      //              -> This conditional approach can be applied to other types of files (e.g. images)
+      }).catch(() => {
+        if (e.request.url.indexOf(".html") > -1) {
+          caches.match("/pages/fallback.html")
+        }
+      })
+    );
+  }
 });
