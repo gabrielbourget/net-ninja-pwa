@@ -4,6 +4,7 @@ const self = this;
 //              -> This triggers a reinstallation of all content (including the new stuff)
 const STATIC_CACHE_NAME = "static-assets-cache";
 const DYNAMIC_CACHE_NAME = "dynamic-assets-cache";
+const MAX_DYNAMIC_CACHE_ITEMS = 20;
 
 const staticCacheAssets = [
   "/", "/index.html",  "/js/app.js", "/js/ui.js", "/js/materialize.min.js",
@@ -12,6 +13,19 @@ const staticCacheAssets = [
   "https://fonts.gstatic.com/s/materialicons/v82/flUhRq6tzZclQEJ-Vdg-IuiaDsNcIhQ8tQ.woff2",
   "/pages/fallback.html",
 ];
+
+// -> Cache size limiter
+const limitCacheSize = (cacheName, maxSize) => {
+  caches.open(cacheName).then((cache) => {
+    cache.keys().then((keys) => {
+      if (keys.length > maxSize) {
+        // -> Delete first resource, recursively call the function until the size is at
+        //    it's maximum limit.
+        cache.delete(keys[0]).then(limitCacheSize(cacheName, maxSize));
+      }
+    });
+  });
+}
 
 // -> Fired upon service worker installation
 self.addEventListener("install", (e) => {
@@ -63,6 +77,7 @@ self.addEventListener("fetch", (e) => {
         //              -> Without doing this, we would not be able to pass this along, and the
         //                 network flow would be interrupted.
         cache.put(e.request.url, fetchResponse.clone());
+        limitCacheSize(DYNAMIC_CACHE_NAME, MAX_DYNAMIC_CACHE_ITEMS);
         return fetchResponse;
       });
     // - DEV NOTE -> If there is a no match in the cache and there's an error retrieving the resource
