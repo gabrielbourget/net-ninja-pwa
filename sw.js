@@ -60,13 +60,19 @@ self.addEventListener("fetch", (e) => {
       return cacheResponse || fetch(e.request).then(async (fetchResponse) => {
         const cache = await caches.open(DYNAMIC_CACHE_NAME);
         // - DEV NOTE -> Need to clone the response since you can only manipulated it once.
-        //   -> Without doing this, we would not be able to pass this along, and the
-        //      network flow would be interrupted.
+        //              -> Without doing this, we would not be able to pass this along, and the
+        //                 network flow would be interrupted.
         cache.put(e.request.url, fetchResponse.clone());
         return fetchResponse;
       });
     // - DEV NOTE -> If there is a no match in the cache and there's an error retrieving the resource
     //               from the network, reach into the cache for a fallback page.
-    }).catch(() => caches.match("/pages/fallback.html"))
+    //              -> Only return the fallback page if the request was made for a page (e.g. not an image)
+    //              -> This conditional approach can be applied to other types of files (e.g. images)
+    }).catch(() => {
+      if (evt.request.url.indexOf(".html") > -1) {
+        caches.match("/pages/fallback.html")
+      }
+    })
   );
 });
